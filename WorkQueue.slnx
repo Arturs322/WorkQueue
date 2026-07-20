@@ -1,3 +1,10 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Project Path="WorkQueue.API/WorkQueue.API.csproj" />
+  <Project Path="WorkQueue.Application/WorkQueue.Application.csproj" />
+  <Project Path="WorkQueue.DataAccess/WorkQueue.DataAccess.csproj" />
+  <Project Path="WorkQueue.Domain/WorkQueue.Domain.csproj" />
+  <Project Path="WorkQueue.Infrastructure/WorkQueue.Infrastructure.csproj" />
 </Solution>
