@@ -6,6 +6,13 @@ namespace WorkQueue.DataAccess
 {
     public static class DbSeeder
     {
+        /// <summary>
+        /// Seeds the database with two organizations and four test users (manager and member for each organization).
+        /// For development, users are assigned a hardcoded password hashed via PasswordHasher
+        /// PRODUCTION APPROACH:
+        /// In production, initial administrative passwords should be injected securely via Environment Variables 
+        /// or Key Vault (Azure Key Vault / AWS Secrets Manager) rather than hardcoded.
+        /// </summary>
         public static void Seed(ApplicationDbContext db)
         {
             if (db.Users.Any())

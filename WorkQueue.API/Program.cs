@@ -1,23 +1,47 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using System.Text;
 using WorkQueue.Application.Interfaces.Authentication;
 using WorkQueue.Application.Interfaces.Users;
+using WorkQueue.Application.Interfaces.WorkItems;
 using WorkQueue.DataAccess;
 using WorkQueue.Domain.Entities;
-using WorkQueue.Infrastructure.Repositories.Users;
+using WorkQueue.Infrastructure.Profiles;
 using WorkQueue.Infrastructure.Services.Authentication;
+using WorkQueue.Infrastructure.Services.Users;
+using WorkQueue.Infrastructure.Services.WorkItems;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token directly (do NOT type 'Bearer ' manually)."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
+    });
+});
+
+builder.Services.AddAutoMapper(cfg => { }, typeof(WorkItemProfile).Assembly);
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IWorkItemService, WorkItemService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

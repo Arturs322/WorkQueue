@@ -6,11 +6,11 @@ using WorkQueue.Domain.Entities;
 
 namespace WorkQueue.Infrastructure.Services.Authentication
 {
-    public class AuthService(IUserRepository _userRepository, IJwtService _jwtService, IPasswordHasher<User> _passwordHasher) : IAuthService
+    public class AuthService(IUserService _userService, IJwtService _jwtService, IPasswordHasher<User> _passwordHasher) : IAuthService
     {
         public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
         {
-            var user = await _userRepository.GetByEmailAsync(loginRequest.Email) ?? throw new UnauthorizedAccessException();
+            var user = await _userService.GetByEmailAsync(loginRequest.Email) ?? throw new UnauthorizedAccessException();
 
             var result = _passwordHasher
                 .VerifyHashedPassword(

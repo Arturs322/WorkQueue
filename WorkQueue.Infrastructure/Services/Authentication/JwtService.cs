@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using WorkQueue.Application.DTO.Auth;
 using WorkQueue.Application.Interfaces.Authentication;
 using WorkQueue.Domain.Entities;
 
@@ -42,6 +43,23 @@ namespace WorkQueue.Infrastructure.Services.Authentication
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public CurrentUserClaims GetCurrentUserClaims(ClaimsPrincipal user)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            var orgIdClaim = user.FindFirst("organizationId")?.Value;
+
+            var roleClaim = user.FindFirst(ClaimTypes.Role)?.Value;
+
+            return new CurrentUserClaims
+            {
+                UserId = userIdClaim != null ? Guid.Parse(userIdClaim) : Guid.Empty,
+                OrganizationId = orgIdClaim != null ? Guid.Parse(orgIdClaim) : Guid.Empty,
+                Role = roleClaim ?? string.Empty
+            };
         }
     }
 }
