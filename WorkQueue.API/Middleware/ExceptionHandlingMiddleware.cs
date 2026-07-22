@@ -17,7 +17,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
         }
         catch (UnauthorizedAccessException ex)
         {
-            await WriteResponse(context, HttpStatusCode.Forbidden, ex.Message);
+            await WriteResponse(context, HttpStatusCode.Unauthorized, ex.Message);
         }
         catch (ArgumentException ex)
         {

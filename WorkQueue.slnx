@@ -7,4 +7,5 @@
   <Project Path="WorkQueue.DataAccess/WorkQueue.DataAccess.csproj" />
   <Project Path="WorkQueue.Domain/WorkQueue.Domain.csproj" />
   <Project Path="WorkQueue.Infrastructure/WorkQueue.Infrastructure.csproj" />
+  <Project Path="WorkQueue.Tests/WorkQueue.Tests.csproj" Id="45a18be9-c122-498f-bee8-4d0abe127cde" />
 </Solution>

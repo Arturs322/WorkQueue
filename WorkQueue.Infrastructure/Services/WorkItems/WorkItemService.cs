@@ -91,7 +91,7 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
                 ?? throw new KeyNotFoundException("Work item was not found.");
             if (workItem.Status == WorkItemStatus.Done && claims.Role == UserRole.Member.ToString())
             {
-                throw new UnauthorizedAccessException("Members cannot edit work items in status 'Done'.");
+                throw new InvalidOperationException("Members cannot edit work items in status 'Done'.");
             }
             _mapper.Map(request, workItem);
             workItem.UpdatedAt = DateTime.UtcNow;
@@ -103,7 +103,7 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
         {
             if (claims.Role != UserRole.Manager.ToString())
             {
-                throw new UnauthorizedAccessException("Only managers can assign work items.");
+                throw new InvalidOperationException("Only managers can assign work items.");
             }
 
             var workItem = await _db.WorkItems.FirstOrDefaultAsync(x => x.Id == workItemId && x.OrganizationId == claims.OrganizationId)
@@ -140,7 +140,7 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
             {
                 if (claims.Role != UserRole.Manager.ToString())
                 {
-                    throw new UnauthorizedAccessException("Only a manager can reopen a 'Done' work item.");
+                    throw new InvalidOperationException("Only a manager can reopen a 'Done' work item.");
                 }
             }
 
