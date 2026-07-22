@@ -1,4 +1,5 @@
 ﻿using WorkQueue.Application.DTO.Auth;
+using WorkQueue.Application.DTO.Dashboard;
 using WorkQueue.Application.DTO.WorkItem;
 namespace WorkQueue.Application.Interfaces.WorkItems
 {
@@ -10,7 +11,7 @@ namespace WorkQueue.Application.Interfaces.WorkItems
         Task UpdateWorkItemAsync(Guid id, UpdateWorkItemRequest request, CurrentUserClaims claims);
         Task AssignWorkItemAsync(Guid id, AssignWorkItemRequest request, CurrentUserClaims claims);
         Task TransitionWorkItemAsync(Guid id, TransitionWorkItemRequest request, CurrentUserClaims claims);
-        Task<IEnumerable<CommentDto>> GetCommentsAsync(Guid id);
-        Task<CommentDto> AddCommentAsync(Guid id, CreateCommentRequest request);
+        Task<IEnumerable<CommentDto>> GetCommentsAsync(Guid id, CurrentUserClaims claims);
+        Task<CommentDto> AddCommentAsync(Guid id, CreateCommentRequest request, CurrentUserClaims claims);
     }
 }

@@ -12,6 +12,14 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
 {
     public class WorkItemService(ApplicationDbContext _db, IMapper _mapper, IUserService _userService) : IWorkItemService
     {
+        private static readonly Dictionary<WorkItemStatus, List<WorkItemStatus>> AllowedTransitions = new()
+        {
+            [WorkItemStatus.New] = [WorkItemStatus.InProgress, WorkItemStatus.Blocked],
+            [WorkItemStatus.InProgress] = [WorkItemStatus.Blocked, WorkItemStatus.Done],
+            [WorkItemStatus.Blocked] = [WorkItemStatus.InProgress, WorkItemStatus.Done],
+            [WorkItemStatus.Done] = [WorkItemStatus.InProgress]
+        };
+
         public async Task<IEnumerable<WorkItemDto>> GetWorkItemsAsync(WorkItemQueryParameters queryParams, CurrentUserClaims claims)
         {
             var query = _db.WorkItems.AsNoTracking().Where(x => x.OrganizationId == claims.OrganizationId);
@@ -79,7 +87,8 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
 
         public async Task UpdateWorkItemAsync(Guid id, UpdateWorkItemRequest request, CurrentUserClaims claims)
         {
-            var workItem = await GetWorkItemAsync(id, claims) ?? throw new InvalidOperationException("Work item was not found.");
+            var workItem = await _db.WorkItems.FirstOrDefaultAsync(x => x.Id == id && x.OrganizationId == claims.OrganizationId)
+                ?? throw new KeyNotFoundException("Work item was not found.");
             if (workItem.Status == WorkItemStatus.Done && claims.Role == UserRole.Member.ToString())
             {
                 throw new UnauthorizedAccessException("Members cannot edit work items in status 'Done'.");
@@ -97,7 +106,8 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
                 throw new UnauthorizedAccessException("Only managers can assign work items.");
             }
 
-            var workItem = await GetWorkItemAsync(workItemId, claims) ?? throw new KeyNotFoundException("Work item not found in your organization.");
+            var workItem = await _db.WorkItems.FirstOrDefaultAsync(x => x.Id == workItemId && x.OrganizationId == claims.OrganizationId)
+                ?? throw new KeyNotFoundException("Work item was not found.");
 
             var targetUser = await _userService.GetByIdAsync(request.UserId);
             if (targetUser == null || targetUser.OrganizationId != claims.OrganizationId)
@@ -113,7 +123,18 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
 
         public async Task TransitionWorkItemAsync(Guid id, TransitionWorkItemRequest request, CurrentUserClaims claims)
         {
-            var workItem = await GetWorkItemAsync(id, claims) ?? throw new InvalidOperationException("Work item was not found.");
+            var workItem = await _db.WorkItems.FirstOrDefaultAsync(x => x.Id == id && x.OrganizationId == claims.OrganizationId)
+                ?? throw new KeyNotFoundException("Work item was not found.");
+
+            if (workItem.Status == request.Status)
+                return;
+
+            if (!AllowedTransitions[workItem.Status].Contains(request.Status))
+            {
+                throw new ArgumentException(
+                    $"Invalid status transition from '{workItem.Status}' to '{request.Status}'."
+                );
+            }
 
             if (workItem.Status == WorkItemStatus.Done && request.Status != WorkItemStatus.Done)
             {
@@ -129,14 +150,33 @@ namespace WorkQueue.Infrastructure.Services.WorkItems
             await _db.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<CommentDto>> GetCommentsAsync(Guid id)
+        public async Task<IEnumerable<CommentDto>> GetCommentsAsync(Guid id, CurrentUserClaims claims)
         {
-            throw new NotImplementedException();
+            return _mapper.Map<IEnumerable<CommentDto>>(await _db.Comments.Where(x => x.WorkItemId == id && x.OrganizationId == claims.OrganizationId).ToListAsync());
         }
 
-        public async Task<CommentDto> AddCommentAsync(Guid id, CreateCommentRequest request)
+        public async Task<CommentDto> AddCommentAsync(Guid id, CreateCommentRequest request, CurrentUserClaims claims)
         {
-            throw new NotImplementedException();
+            var workItem = await _db.WorkItems.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.OrganizationId == claims.OrganizationId)
+                ?? throw new KeyNotFoundException("Work item was not found.");
+
+            if (workItem.OrganizationId != claims.OrganizationId)
+            {
+                throw new InvalidOperationException("Wrong Organization.");
+            }
+
+            var newComment = new Comment
+            {
+                WorkItemId = id,
+                OrganizationId = claims.OrganizationId,
+                UserId = claims.UserId,
+                Text = request.Text
+            };
+            await _db.Comments.AddAsync(newComment);
+            await _db.SaveChangesAsync();
+
+            return _mapper.Map<CommentDto>(newComment) ?? throw new InvalidOperationException("Comment was not created.");
+
         }
     }
 }

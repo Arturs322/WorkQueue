@@ -3,13 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using WorkQueue.API.Middleware;
 using WorkQueue.Application.Interfaces.Authentication;
+using WorkQueue.Application.Interfaces.Dashboard;
 using WorkQueue.Application.Interfaces.Users;
 using WorkQueue.Application.Interfaces.WorkItems;
 using WorkQueue.DataAccess;
 using WorkQueue.Domain.Entities;
 using WorkQueue.Infrastructure.Profiles;
 using WorkQueue.Infrastructure.Services.Authentication;
+using WorkQueue.Infrastructure.Services.Dashboard;
 using WorkQueue.Infrastructure.Services.Users;
 using WorkQueue.Infrastructure.Services.WorkItems;
 
@@ -35,11 +38,12 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(WorkItemProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(AutomapperProfile).Assembly);
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IWorkItemService, WorkItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -86,9 +90,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

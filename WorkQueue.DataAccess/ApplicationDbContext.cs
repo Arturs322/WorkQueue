@@ -8,6 +8,7 @@ namespace WorkQueue.DataAccess
         public DbSet<User> Users => Set<User>();
         public DbSet<Organization> Organizations => Set<Organization>();
         public DbSet<WorkItem> WorkItems => Set<WorkItem>();
+        public DbSet<Comment> Comments => Set<Comment>();
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {

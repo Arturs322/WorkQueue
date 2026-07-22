@@ -4,15 +4,18 @@ using WorkQueue.Domain.Entities;
 
 namespace WorkQueue.Infrastructure.Profiles
 {
-    public class WorkItemProfile : Profile
+    public class AutomapperProfile : Profile
     {
-        public WorkItemProfile()
+        public AutomapperProfile()
         {
             CreateMap<WorkItem, WorkItemDto>();
             CreateMap<WorkItemDto, WorkItem>();
             CreateMap<UpdateWorkItemRequest, WorkItemDto>();
             CreateMap<CreateWorkItemRequest, WorkItem>();
             CreateMap<UpdateWorkItemRequest, WorkItem>();
+
+            CreateMap<Comment, CommentDto>();
+            CreateMap<CommentDto, Comment>();
         }
     }
 }
